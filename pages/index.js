@@ -1,8 +1,26 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import { wrapper } from "../app/store";
+import { useDispatch, useSelector } from "react-redux";
+import Link from "next/link";
+import { increment } from "../app/store/slices/counter";
+import { setProfileData } from "../app/store/slices/profile";
+import { addUser } from "../app/store/slices/user";
+import { useState } from "react";
 
 export default function Home() {
+  const profile = useSelector((store) => store.profile);
+  const count = useSelector((store) => store.counter.value);
+  const users = useSelector((store) => store.users.list);
+  const [newUser, setNewUser] = useState("");
+
+  const dispatch = useDispatch();
+
+  const addnewUser = () => {
+    // setUsers([...users, name]);
+    dispatch(addUser(newUser));
+  };
   return (
     <div className={styles.container}>
       <Head>
@@ -15,55 +33,42 @@ export default function Home() {
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
+        <h2>{`this is redux state: ${profile.name}`}</h2>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
+        <p>
+          navigate to
+          <Link href="./profile">
+            <a>profile</a>
+          </Link>
         </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
+        <div>
+          <button
+            className="btn btn-primary m-3"
+            onClick={() => dispatch(increment())}
           >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+            increment
+          </button>
+          <p>{count}</p>
+        </div>
+        <div>
+          <label>new user:</label>
+          <input
+            type="text"
+            value={newUser}
+            onChange={(e) => setNewUser(e.target.value)}
+          ></input>
+          <button onClick={addnewUser}>addnewuser</button>
         </div>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
-  )
+  );
 }
+export const getServerSideProps = wrapper.getServerSideProps(
+  (store) => async () => {
+    store.dispatch(setProfileData("babak"));
+    store.dispatch(addUser("userdispatched from getserverside index page"));
+    return {
+      props: {},
+    };
+  }
+);
